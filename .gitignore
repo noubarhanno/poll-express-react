@@ -1,0 +1,7 @@
+# backend
+/backend/node_modules
+/backend/dist
+/backend/db.sqlite
+
+#frontend
+/frontend/node_modules
