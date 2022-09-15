@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { IUserAttributes, UserModel } from "../models/auth";
+import { Users, IUserAttributes } from "../models";
 import bcrypt from "bcrypt";
 import njwt, { Jwt } from "njwt";
 import { IResponsePayload } from "../interfaces";
@@ -30,7 +30,7 @@ export const decodeToken = (
     return undefined;
   }
   decodedToken?.setExpiration(new Date().getTime() + 3600000).body; //1 hour
-  return decodedToken as { email: string; exp: number } | undefined;
+  return decodedToken?.body as { email: string; exp: number } | undefined;
 };
 
 /**
@@ -47,20 +47,18 @@ export const register = async (req: Request, res: Response) => {
       .status(400)
       .send({ success: false, error: "Bad Request, missing parameters" });
   }
-  const isUserExist = await UserModel.findOne({ where: { email } });
+  const isUserExist = await Users.findOne({ where: { email } });
   if (!isUserExist) {
     const hashedPassword = await bcrypt.hash(password, 10);
     const access_token = encodeToken({ email });
     try {
-      const user = await UserModel.create({
+      await Users.create({
         email,
         firstName,
         lastName,
         password: hashedPassword,
       });
-      return res
-        .status(200)
-        .json({ success: true, data: { access_token, user: user } });
+      return res.status(200).json({ success: true, data: { access_token } });
     } catch (error) {
       return res
         .status(500)
@@ -85,7 +83,9 @@ export const login = async (
 ) => {
   const { email, password } = req.body;
 
-  const userObject = await UserModel.findOne({ where: { email } });
+  const userObject = await Users.findOne({
+    where: { email },
+  });
 
   if (userObject === null) {
     return res
@@ -95,9 +95,10 @@ export const login = async (
     bcrypt.compare(password, userObject.password, (err, result) => {
       if (result) {
         const accessToken = encodeToken({ email: userObject.email });
+        const { password, ...rest } = userObject.get();
         return res.status(200).json({
           success: true,
-          data: { ...userObject.get(), accessToken },
+          data: { ...rest, accessToken },
           status: 200,
           message: "User Logged in successfully",
         });
@@ -110,39 +111,4 @@ export const login = async (
       }
     });
   }
-};
-
-/**
- *
- * @param req express request contains the authorization header
- * @param res  express response
- * @returns  express json response
- */
-export const verifyToken = async (
-  req: Request,
-  res: Response<IResponsePayload<TLoginData>>
-) => {
-  const token = req.headers.authorization?.split(" ")[1];
-  if (token) {
-    const decodedToken = decodeToken(token);
-    if (decodedToken) {
-      const user = await UserModel.findOne({
-        where: { email: decodedToken.email },
-      });
-      if (user) {
-        return res.status(200).json({
-          success: true,
-          data: { ...user.get(), accessToken: token },
-          message: "Token is still valid",
-          status: 200,
-        });
-      }
-    }
-  }
-  return res.status(401).json({
-    success: false,
-    error: "Token is invalid",
-    status: 401,
-    message: "Token is invalid",
-  });
 };

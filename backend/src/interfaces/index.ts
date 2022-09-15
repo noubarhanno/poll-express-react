@@ -5,3 +5,7 @@ export interface IResponsePayload<TData> {
   message?: string;
   status: number;
 }
+
+export interface IRequestHeaders extends Record<string, string> {
+  email: string;
+}

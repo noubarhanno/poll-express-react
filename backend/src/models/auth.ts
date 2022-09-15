@@ -1,51 +1,37 @@
-import {
-  DataTypes,
-  InferAttributes,
-  InferCreationAttributes,
-  Model,
-} from "sequelize";
-import db from "../config/db.config";
+import { Table, Column, Model, DataType } from "sequelize-typescript";
 
 export type IUserAttributes = {
   firstName: string;
   lastName: string;
   email: string;
-  password: string;
+  password?: string;
 };
 
-export class UserModel extends Model<
-  InferAttributes<UserModel>,
-  InferCreationAttributes<UserModel>
-> {
-  declare firstName: string;
-  declare lastName: string;
-  declare email: string;
-  declare password: string;
+@Table({
+  tableName: "Users",
+})
+class User extends Model<IUserAttributes> {
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+  })
+  firstName!: string;
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+  })
+  lastName!: string;
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+  })
+  email!: string;
+  @Column({
+    type: DataType.STRING,
+    allowNull: false,
+    primaryKey: true,
+  })
+  password!: string;
 }
 
-UserModel.init(
-  {
-    firstName: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    lastName: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-    email: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      unique: true,
-      primaryKey: true,
-    },
-    password: {
-      type: DataTypes.STRING,
-      allowNull: false,
-    },
-  },
-  {
-    tableName: "users",
-    sequelize: db,
-  }
-);
+export default User;
