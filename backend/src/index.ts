@@ -21,7 +21,7 @@ const app: Express = express();
 /**
  * getting port from the environment
  */
-const port = process.env.PORT;
+const port = process.env.PORT || 4000;
 
 /**
  * setting up server startup with db connection

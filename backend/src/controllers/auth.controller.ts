@@ -69,7 +69,7 @@ export const register = async (req: Request, res: Response) => {
 };
 
 type TLoginData = IUserAttributes & {
-  accessToken: string;
+  access_token: string;
 };
 /**
  * @description login user to the platform
@@ -94,11 +94,11 @@ export const login = async (
   } else {
     bcrypt.compare(password, userObject.password, (err, result) => {
       if (result) {
-        const accessToken = encodeToken({ email: userObject.email });
+        const access_token = encodeToken({ email: userObject.email });
         const { password, ...rest } = userObject.get();
         return res.status(200).json({
           success: true,
-          data: { ...rest, accessToken },
+          data: { ...rest, access_token },
           status: 200,
           message: "User Logged in successfully",
         });
